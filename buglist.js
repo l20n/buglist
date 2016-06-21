@@ -3,7 +3,7 @@
 var newbugs = new Set(), knownbugs = new Map();
 
 const bugapi = 'https://bugzilla.mozilla.org/rest/bug';
-const fields = 'id,product,component,summary'
+const fields = 'id,product,component,summary,status,resolution,assigned_to,depends_on,blocks,cf_user_story';
 
 function getBugAPI() {
     var url = new URL(bugapi);
@@ -58,7 +58,7 @@ function queryMoreBugs() {
     // params.append('j_top', 'OR'); < NOT NEEDED
     ['blocked'].forEach(function(rel, i) {
         params.append('f' + (i + 1), rel);
-        params.append('o' + (i + 1), 'anywords');
+        params.append('o' + (i + 1), 'anyexact');
         params.append('v' + (i + 1), Array.from(newbugs).join(','));
     });
     fetch(url).then(function(response) {
