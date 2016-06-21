@@ -1,3 +1,7 @@
 #templates {
     display: none;
 }
+
+.badge.count {
+    float: right;
+}

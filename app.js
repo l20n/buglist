@@ -15,7 +15,11 @@ class BugCount {
         this._dom = document.querySelector('#templates > .bugcount').cloneNode(true);
         this._dom.querySelector(".product").textContent = prod;
         this._dom.querySelector(".component").textContent = component;
-        this._dom.id = prod + '\0' + component;
+        this._dom.id = (prod + '_' + component).replace(/\W/g,'_');
+        // hook up collapse IDs and href
+        var body_id = this._dom.id + '_body';
+        this._dom.querySelector(".panel-body").id = body_id;
+        this._dom.querySelector("a").href = '#' + body_id;
         this.count_dom = this._dom.querySelector('.count');
         this.count = 1;
         var child = null;
@@ -49,7 +53,7 @@ class BugCountList {
         var updates = new Set();
         newbugs.forEach(function(bugid) {
             var bug = knownbugs.get(bugid);
-            var key = bug.product + '\0' + bug.component;
+            var key = bug.product + '_' + bug.component;
             updates.add(key);
             if (this.children.has(key)) {
                 this.children.get(key).count += 1;
