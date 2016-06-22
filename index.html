@@ -4,6 +4,7 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>L20n Bug List</title>
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
@@ -19,7 +20,15 @@
         <script type="text/javascript" src="app.js"></script>
     </head>
     <body>
-        <div id='app' class='container'></div>
+        <div class='container'>
+            <div id='app'></div>
+            <div class="panel">
+                <div class="panel-body">
+                    <button id="expand-list" type="button" class="btn btn-default">Expand</button>
+                    <button id="collapse-list" type="button" class="btn btn-default">Collapse</button>
+                </div>
+            </div>
+        </div>
         <div id="templates">
             <div class="prodcomp panel panel-default">
               <div class="panel-heading">
@@ -27,12 +36,17 @@
                     <a href="" role="button" data-toggle="collapse" >
                         <span class="product"></span> - <span class="component"></span>
                     </a>
-                    <span class="badge count"></span>
+                    <span class="badge"><span class='unblocked'></span>/<span class='count'></span></span>
                 </h3>
               </div>
-              <div class="panel-body collapse">
-                TBD
-              </div>
+              <div class="bugs panel-body collapse"></div>
+            </div>
+            <div class="bug_template row">
+                <div class="col-md-1"><a href="" class='id'></a>:</div>
+                <div class="col-md-7"><div class='summary'></div></div>
+                <div class="col-md-2 crop"><div class='assigned_to'></div></div>
+                <div class="col-md-1 right"><div class='blocks'></div></div>
+                <div class="col-md-1 right"><div class='depends_on'></div></div>
             </div>
         </div>
     </body>

@@ -1,7 +1,19 @@
+body {
+    padding-top: 20px;
+}
+
 #templates {
     display: none;
 }
 
-.badge.count {
+.panel-title > .badge {
     float: right;
+}
+
+.bug_template.fixed div {
+    text-decoration: line-through;
+}
+
+.bug_template > .right {
+    text-align: right;
 }
