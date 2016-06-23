@@ -37,7 +37,9 @@ class Component {
         bug_html.querySelector('.id').textContent = bug.id;
         bug_html.querySelector('a').setAttribute('href', 'https://bugzil.la/' + bug.id);
         bug_html.querySelector('.summary').textContent = bug.summary;
-        bug_html.querySelector('.assigned_to').textContent = bug.assigned_to;
+        if (bug.assigned_to !== 'nobody@mozilla.org') {
+            bug_html.querySelector('.assigned_to').textContent = bug.assigned_to;
+        }
         if (bug.depends_on && bug.depends_on.length) {
             cell = bug_html.querySelector('.depends_on');
             cell.classList.add('bg-danger');
