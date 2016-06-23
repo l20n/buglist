@@ -17,3 +17,13 @@ body {
 .bug_template > .right {
     text-align: right;
 }
+
+.appframe {
+    /* 50px is height of navbar, + 20px margin-bottom, plus our body padding */
+    padding-top: calc(50px + 20px + 20px);
+    margin-top: calc(-50px - 20px - 20px);
+}
+
+.appframe:not(:target) {
+    display: none;
+}

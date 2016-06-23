@@ -24,7 +24,7 @@ function saveBugs(data) {
     console.log('got bugs');
     console.log(data.bugs.length);
     if (! data.bugs.length) {
-        // notify
+        done();
         console.log('done loading');
         return;
     }
@@ -43,9 +43,13 @@ function saveBugs(data) {
         queryMoreBugs();
     }
     else {
-        // notify
+        done();
         console.log('done loading');
     }
+}
+
+function done() {
+    document.getElementById('loading').textContent = '';
 }
 
 function queryMoreBugs() {

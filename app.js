@@ -3,6 +3,22 @@
 
 document.addEventListener('bug-data', ondata, true);
 document.addEventListener('DOMContentLoaded', onload, true);
+if (!document.location.hash) {
+    document.location.hash = 'components';
+}
+window.onhashchange = update_active;
+function update_active() {
+    var navbar = document.querySelector('.navbar-nav');
+    var hash = document.location.hash;
+    Array.from(navbar.children).forEach(function(li) {
+        if (li.children[0].getAttribute('href') === hash) {
+            li.classList.add('active');
+        }
+        else {
+            li.classList.remove('active');
+        }
+    });
+}
 
 function ondata(e) {
     console.log('CE', e.detail.newbugs);
@@ -119,5 +135,6 @@ function onload() {
             document.querySelectorAll('a[role=button][aria-expanded=true]')
         ).forEach(n => n.click());
     };
+    update_active();
     document.removeEventListener('DOMContentLoaded', onload, true);
 }
