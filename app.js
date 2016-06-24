@@ -23,6 +23,35 @@ function update_active() {
 function ondata(e) {
     console.log('CE', e.detail.newbugs);
     components && components.renderBugs(e.detail.newbugs);
+    people && people.renderBugs(e.detail.newbugs);
+}
+
+class BugRow {
+    constructor(bug, mount, before) {
+        this._bug = bug;
+        var cell, bug_html = document.querySelector('#templates > .bug_template').cloneNode(true);
+        bug_html.querySelector('.id').textContent = bug.id;
+        bug_html.querySelector('a').setAttribute('href', 'https://bugzil.la/' + bug.id);
+        bug_html.querySelector('.summary').textContent = bug.summary;
+        if (bug.assigned_to !== 'nobody@mozilla.org') {
+            bug_html.querySelector('.assigned_to').textContent = bug.assigned_to;
+        }
+        if (bug.depends_on && bug.depends_on.length) {
+            cell = bug_html.querySelector('.depends_on');
+            cell.classList.add('bg-danger');
+            cell.textContent = bug.depends_on.length;
+        }
+        if (bug.blocks && bug.blocks.length) {
+            cell = bug_html.querySelector('.blocks');
+            cell.classList.add('bg-warning');
+            cell.textContent = bug.blocks.length;
+        }
+        if (bug.resolution === 'FIXED') {
+            bug_html.classList.add('fixed');
+        }
+        mount.insertBefore(bug_html, before);
+        this.dom = bug_html;
+    }
 }
 
 class Component {
@@ -49,27 +78,7 @@ class Component {
         mount.insertBefore(this._dom, child);
     }
     add(bug) {
-        var cell, bug_html = this._bug_template.cloneNode(true);
-        bug_html.querySelector('.id').textContent = bug.id;
-        bug_html.querySelector('a').setAttribute('href', 'https://bugzil.la/' + bug.id);
-        bug_html.querySelector('.summary').textContent = bug.summary;
-        if (bug.assigned_to !== 'nobody@mozilla.org') {
-            bug_html.querySelector('.assigned_to').textContent = bug.assigned_to;
-        }
-        if (bug.depends_on && bug.depends_on.length) {
-            cell = bug_html.querySelector('.depends_on');
-            cell.classList.add('bg-danger');
-            cell.textContent = bug.depends_on.length;
-        }
-        if (bug.blocks && bug.blocks.length) {
-            cell = bug_html.querySelector('.blocks');
-            cell.classList.add('bg-warning');
-            cell.textContent = bug.blocks.length;
-        }
-        if (bug.resolution === 'FIXED') {
-            bug_html.classList.add('fixed');
-        }
-        this._dom.querySelector('.bugs').appendChild(bug_html);
+        new BugRow(bug, this._dom.querySelector('.bugs'));
         if (bug.resolution !== "") {
             return;
         }
@@ -119,9 +128,115 @@ class BugCountList {
     }
 }
 
-var components;
+
+class People {
+    constructor(mount) {
+        this.mount = mount;
+        while (mount.lastChild) {
+            mount.lastChild.remove();
+        }
+        this._map = new Map();
+    }
+    get(bug) {
+        var key = bug.assigned_to.replace(/^W/g, '_');
+        var person = this._map.get(key);
+        if (!person) {
+            person = new Person(key, bug.assigned_to_detail, this.mount);
+            this._map.set(key, person);
+        }
+        return person;
+    }
+    renderBugs(newbugs) {
+        if (newbugs.length == 0) return;
+        var rerender = new Set();
+        newbugs.forEach(function(bugid) {
+            var bug = knownbugs.get(bugid);
+            var person = this.get(bug);
+            person.add(bug);
+            rerender.add(person);
+        }, this);
+        rerender.forEach(person => person.render());
+    }
+}
+
+class Person {
+    constructor(id, detail, mount) {
+        this._id = id;
+        this.detail = detail;
+        this.depends_on = new Set();
+        this.blocks = new Set();
+        this.fixed = 0;
+        this.blocked_bugs = [];
+        this.unblocked_bugs = [];
+        this._dom = document.querySelector('#templates > .people-person').cloneNode(true);
+        this._dom.id = id;
+        this._dom.querySelector('.name').textContent = detail.email==='nobody@mozilla.org' ? 'Unassigned' : detail.name;
+        var child = null;
+        for (var i=0, ii=mount.children.length; i<ii; ++i) {
+            if (mount.children[i].id > this._dom.id) {
+                child = mount.children[i];
+                break;
+            }
+        }
+        mount.insertBefore(this._dom, child);
+    }
+    add(assigned_bug) {
+        if (assigned_bug.resolution === 'FIXED') {
+            this.fixed++;
+            return;
+        }
+        assigned_bug.depends_on.forEach(function(bug) {
+            bug = knownbugs.get(bug);
+            if (!bug) {
+                this.depends_on.add('nobody@mozilla.org');
+            }
+            else if (bug.resolution ==='') {
+                this.depends_on.add(bug.assigned_to);
+            }
+        }, this);
+        assigned_bug.blocks.forEach(function(bug) {
+            bug = knownbugs.get(bug);
+            if (!bug) {
+                this.blocks.add('nobody@mozilla.org');
+            }
+            else if (bug.resolution ==='') {
+                this.blocks.add(bug.assigned_to);
+            }
+        }, this);
+        if (assigned_bug.depends_on.length) {
+            this.blocked_bugs.push(assigned_bug);
+            if (this.blocked_bugs.length > 1) {
+                this.blocked_bugs.sort((a, b) => b.blocks.length - a.blocks.length);
+            }
+        }
+        else {
+            this.unblocked_bugs.push(assigned_bug);
+            if (this.unblocked_bugs.length > 1) {
+                this.unblocked_bugs.sort((a, b) => b.blocks.length - a.blocks.length);
+            }
+        }
+    }
+    render() {
+        this._dom.querySelector('.fixed').textContent = this.fixed;
+        var allbugs = this.unblocked_bugs.concat(this.blocked_bugs);
+        var bugnode = this._dom.querySelector('.bugs').firstChild;
+        allbugs.forEach(function(bug) {
+            var id = 'person_bug_' + bug.id;
+            if (bugnode && bugnode.id === id) {
+                bugnode = bugnode.nextSibling;
+                return;
+            }
+            var bugrow = new BugRow(bug, this._dom.querySelector('.bugs'), bugnode);
+            bugrow.dom.id = id;
+            bugnode = bugrow.dom.nextSibling;
+        }, this);
+    }
+}
+
+var components, people;
 function onload() {
     components = new BugCountList(document.getElementById('app'));
+    people = new People(document.getElementById('people'));
     if (knownbugs.size) {
         components.renderBugs(Array.from(knownbugs.keys()));
     }
