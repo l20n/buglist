@@ -1,4 +1,4 @@
-/* global knownbugs */
+/* global knownbugs, tracker */
 "use strict";
 
 document.addEventListener('bug-data', ondata, true);
@@ -43,6 +43,10 @@ class BugRow {
         }
         else {
             bug_html.querySelector('.depends_on').remove();
+        }
+        var blocks = bug.blocks;
+        if (blocks && blocks.length && tracker && blocks.indexOf(tracker) >= 0) {
+            blocks.splice(blocks.indexOf(tracker), 1);
         }
         if (bug.blocks && bug.blocks.length) {
             cell = bug_html.querySelector('.blocks');
@@ -209,16 +213,22 @@ class Person {
                 this.blocks.add(bug.assigned_to);
             }
         }, this);
+        function sortBugs(a, b) {
+            if (b.blocks.length !== a.blocks.length) {
+                return b.blocks.length - a.blocks.length;
+            }
+            return a.depends_on.length  - b.depends_on.length;
+        }
         if (assigned_bug.depends_on.length) {
             this.blocked_bugs.push(assigned_bug);
             if (this.blocked_bugs.length > 1) {
-                this.blocked_bugs.sort((a, b) => b.blocks.length - a.blocks.length);
+                this.blocked_bugs.sort(sortBugs);
             }
         }
         else {
             this.unblocked_bugs.push(assigned_bug);
             if (this.unblocked_bugs.length > 1) {
-                this.unblocked_bugs.sort((a, b) => b.blocks.length - a.blocks.length);
+                this.unblocked_bugs.sort(sortBugs);
             }
         }
     }

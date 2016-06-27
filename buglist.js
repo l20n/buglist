@@ -1,9 +1,9 @@
 /* global URL, fetch, CustomEvent */
 
-var newbugs = new Set(), knownbugs = new Map();
+var newbugs = new Set(), knownbugs = new Map(), tracker;
 
 const bugapi = 'https://bugzilla.mozilla.org/rest/bug';
-const fields = 'id,product,component,summary,status,resolution,assigned_to,depends_on,blocks,cf_user_story';
+const fields = 'id,alias,product,component,summary,status,resolution,assigned_to,depends_on,blocks,cf_user_story';
 
 function getBugAPI() {
     var url = new URL(bugapi);
@@ -32,6 +32,9 @@ function saveBugs(data) {
     data.bugs.forEach(function(bug) {
         if (knownbugs.has(bug.id)) {
             return;
+        }
+        if (bug.alias === 'gecko-l20n') {
+            tracker = bug.id;
         }
         newbugs.add(bug.id);
         knownbugs.set(bug.id, bug);
