@@ -63,7 +63,7 @@
                     <a href="" role="button" data-toggle="collapse" >
                         <span class="product"></span> - <span class="component"></span>
                     </a>
-                    <span class="badge"><span class='unblocked'></span>/<span class='count'></span></span>
+                    <span class="badge" title="Unblocked/Open"><span class='unblocked'></span>/<span class='count'></span></span>
                 </h3>
               </div>
               <div class="bugs panel-body collapse"></div>
@@ -72,8 +72,8 @@
                 <div class="col-md-1"><a href="" class='id'></a>:</div>
                 <div class="col-md-7"><div class='summary'></div></div>
                 <div class="col-md-2 crop"><div class='assigned_to'></div></div>
-                <div class="col-md-1 right"><div class='blocks'></div></div>
-                <div class="col-md-1 right"><div class='depends_on'></div></div>
+                <div class="col-md-1 right"><button class='blocks btn btn-xs btn-warning' title="Blocks &hellip;"></button></div>
+                <div class="col-md-1 right"><button class='depends_on btn btn-xs btn-danger' title="Depends on &hellip;"></button></div>
             </div>
             <div class="people-person panel panel-default">
               <div class="panel-heading">
@@ -81,7 +81,7 @@
                     <a href="" role="button" data-toggle="collapse" >
                         <span class="name"></span>
                     </a>
-                    <span class="badge"><span class='fixed'></span></span>
+                    <span class="badge" title="Fixed bugs"><span class='fixed'></span></span>
                 </h3>
               </div>
               <div class="bugs panel-body"></div>

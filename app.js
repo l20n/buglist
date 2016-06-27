@@ -41,10 +41,16 @@ class BugRow {
             cell.classList.add('bg-danger');
             cell.textContent = bug.depends_on.length;
         }
+        else {
+            bug_html.querySelector('.depends_on').remove();
+        }
         if (bug.blocks && bug.blocks.length) {
             cell = bug_html.querySelector('.blocks');
             cell.classList.add('bg-warning');
             cell.textContent = bug.blocks.length;
+        }
+        else {
+            bug_html.querySelector('.blocks').remove();
         }
         if (bug.resolution === 'FIXED') {
             bug_html.classList.add('fixed');
