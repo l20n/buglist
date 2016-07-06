@@ -26,24 +26,27 @@ function ondata(e) {
     people && people.renderBugs(e.detail.newbugs);
 }
 
+function sortBugs(a, b) {
+    if (b.blocks.length !== a.blocks.length) {
+        return b.blocks.length - a.blocks.length;
+    }
+    return a.depends_on.length  - b.depends_on.length;
+}
+
 class BugRow {
     constructor(bug, mount, before) {
         this._bug = bug;
+        this._sort = !!before;
         var cell, bug_html = document.querySelector('#templates > .bug_template').cloneNode(true);
+        this.dom = bug_html;
+        this.dom.bug = bug;
         bug_html.querySelector('.id').textContent = bug.id;
         bug_html.querySelector('a').setAttribute('href', 'https://bugzil.la/' + bug.id);
         bug_html.querySelector('.summary').textContent = bug.summary;
         if (bug.assigned_to !== 'nobody@mozilla.org') {
             bug_html.querySelector('.assigned_to').textContent = bug.assigned_to;
         }
-        if (bug.depends_on && bug.depends_on.length) {
-            cell = bug_html.querySelector('.depends_on');
-            cell.classList.add('bg-danger');
-            cell.textContent = bug.depends_on.length;
-        }
-        else {
-            bug_html.querySelector('.depends_on').remove();
-        }
+        this.renderDeps();
         var blocks = bug.blocks;
         if (blocks && blocks.length && tracker && blocks.indexOf(tracker) >= 0) {
             blocks.splice(blocks.indexOf(tracker), 1);
@@ -60,7 +63,29 @@ class BugRow {
             bug_html.classList.add('fixed');
         }
         mount.insertBefore(bug_html, before);
-        this.dom = bug_html;
+        document.addEventListener('bug-dependencies-' + bug.id,
+                                  this.renderDeps.bind(this), true);
+    }
+
+    renderDeps(e) {
+        var cell;
+        if (this._bug.depends_on && this._bug.depends_on.length) {
+            cell = this.dom.querySelector('.depends_on');
+            cell.classList.add('bg-danger');
+            cell.textContent = this._bug.depends_on.length;
+        }
+        else {
+            this.dom.querySelector('.depends_on').remove();
+        }
+        if (this._sort && this.dom.parentNode) {
+            var before = this.dom;
+            while (before.previousSibling && sortBugs(before.previousSibling.bug, this._bug) > 0) {
+                before = before.previousSibling;
+            }
+            if (before !== this.dom) {
+                this.dom.parentElement.insertBefore(this.dom, before);
+            }
+        }
     }
 }
 
@@ -213,17 +238,13 @@ class Person {
                 this.blocks.add(bug.assigned_to);
             }
         }, this);
-        function sortBugs(a, b) {
-            if (b.blocks.length !== a.blocks.length) {
-                return b.blocks.length - a.blocks.length;
-            }
-            return a.depends_on.length  - b.depends_on.length;
-        }
         if (assigned_bug.depends_on.length) {
             this.blocked_bugs.push(assigned_bug);
             if (this.blocked_bugs.length > 1) {
                 this.blocked_bugs.sort(sortBugs);
             }
+            document.addEventListener('bug-dependencies-' + assigned_bug.id,
+                                      this.updateDeps.bind(this), true);
         }
         else {
             this.unblocked_bugs.push(assigned_bug);
@@ -246,6 +267,14 @@ class Person {
             bugrow.dom.id = id;
             bugnode = bugrow.dom.nextSibling;
         }, this);
+    }
+    updateDeps(e) {
+        // if a bug is now unblocked, shuffle it from one to the other list
+        if (e.detail.blocked) return;
+        var bug = knownbugs.get(e.detail.id);
+        this.blocked_bugs.splice(this.blocked_bugs.indexOf(bug), 1);
+        this.unblocked_bugs.push(bug);
+        this.unblocked_bugs.sort(sortBugs);
     }
 }
 

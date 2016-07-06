@@ -36,7 +36,21 @@ function saveBugs(data) {
         if (bug.alias === 'gecko-l20n') {
             tracker = bug.id;
         }
+        bug.resolved_deps = [];
         newbugs.add(bug.id);
+        if (bug.status === 'RESOLVED') {
+            // if this bug is resolved, strip it from the dependencies of other bugs
+            knownbugs.forEach(function(other) {
+                var i;
+                if ((i = other.depends_on.indexOf(bug.id)) >= 0) {
+                    other.depends_on.splice(i, 1);
+                    other.resolved_deps.push(bug.id);
+                    document.dispatchEvent(
+                        new CustomEvent('bug-dependencies-' + other.id, {'detail': {'id': other.id, blocked: !!other.depends_on.length}})
+                    );
+                }
+            });
+        }
         knownbugs.set(bug.id, bug);
     });
     if (newbugs.size) {
