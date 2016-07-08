@@ -15,14 +15,11 @@ function findGeckoL20n() {
     var url = getBugAPI();
     url.searchParams.append('alias', 'gecko-l20n');
     fetch(url).then(function (response) {
-        console.log('got response');
         return response.json();
     }).then(saveBugs);
 }
 
 function saveBugs(data) {
-    console.log('got bugs');
-    console.log(data.bugs.length);
     if (! data.bugs.length) {
         done();
         console.log('done loading');
@@ -40,15 +37,15 @@ function saveBugs(data) {
         newbugs.add(bug.id);
         if (bug.status === 'RESOLVED') {
             // if this bug is resolved, strip it from the dependencies of other bugs
-            knownbugs.forEach(function(other) {
-                var i;
-                if ((i = other.depends_on.indexOf(bug.id)) >= 0) {
-                    other.depends_on.splice(i, 1);
-                    other.resolved_deps.push(bug.id);
-                    document.dispatchEvent(
-                        new CustomEvent('bug-dependencies-' + other.id, {'detail': {'id': other.id, blocked: !!other.depends_on.length}})
-                    );
-                }
+            bug.blocks.forEach(function(otherid) {
+                var other = knownbugs.get(otherid);
+                if (!other) return;
+                var i = other.depends_on.indexOf(bug.id);
+                other.depends_on.splice(i, 1);
+                other.resolved_deps.push(bug.id);
+                document.dispatchEvent(
+                    new CustomEvent('bug-dependencies-' + other.id, {'detail': {'id': other.id, blocked: !!other.depends_on.length}})
+                );
             });
         }
         knownbugs.set(bug.id, bug);
@@ -83,7 +80,6 @@ function queryMoreBugs() {
         params.append('v' + (i + 1), Array.from(newbugs).join(','));
     });
     fetch(url).then(function(response) {
-        console.log('got dependencies');
         return response.json();
     }).then(saveBugs);
 }

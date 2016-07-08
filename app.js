@@ -21,16 +21,15 @@ function update_active() {
 }
 
 function ondata(e) {
-    console.log('CE', e.detail.newbugs);
     components && components.renderBugs(e.detail.newbugs);
     people && people.renderBugs(e.detail.newbugs);
 }
 
 function sortBugs(a, b) {
-    if (b.blocks.length !== a.blocks.length) {
-        return b.blocks.length - a.blocks.length;
+    if (b.depends_on.length !== a.depends_on.length) {
+        return a.depends_on.length  - b.depends_on.length;
     }
-    return a.depends_on.length  - b.depends_on.length;
+    return b.blocks.length - a.blocks.length;
 }
 
 class BugRow {
@@ -201,8 +200,7 @@ class Person {
         this.depends_on = new Set();
         this.blocks = new Set();
         this.fixed = 0;
-        this.blocked_bugs = [];
-        this.unblocked_bugs = [];
+        this.buglist = [];
         this._dom = document.querySelector('#templates > .people-person').cloneNode(true);
         this._dom.id = id;
         this._dom.querySelector('.name').textContent = detail.email==='nobody@mozilla.org' ? 'Unassigned' : detail.name;
@@ -239,25 +237,16 @@ class Person {
             }
         }, this);
         if (assigned_bug.depends_on.length) {
-            this.blocked_bugs.push(assigned_bug);
-            if (this.blocked_bugs.length > 1) {
-                this.blocked_bugs.sort(sortBugs);
-            }
             document.addEventListener('bug-dependencies-' + assigned_bug.id,
                                       this.updateDeps.bind(this), true);
         }
-        else {
-            this.unblocked_bugs.push(assigned_bug);
-            if (this.unblocked_bugs.length > 1) {
-                this.unblocked_bugs.sort(sortBugs);
-            }
-        }
+        this.buglist.push(assigned_bug);
+        this.buglist.sort(sortBugs);
     }
     render() {
         this._dom.querySelector('.fixed').textContent = this.fixed;
-        var allbugs = this.unblocked_bugs.concat(this.blocked_bugs);
         var bugnode = this._dom.querySelector('.bugs').firstChild;
-        allbugs.forEach(function(bug) {
+        this.buglist.forEach(function(bug) {
             var id = 'person_bug_' + bug.id;
             if (bugnode && bugnode.id === id) {
                 bugnode = bugnode.nextSibling;
@@ -269,12 +258,16 @@ class Person {
         }, this);
     }
     updateDeps(e) {
-        // if a bug is now unblocked, shuffle it from one to the other list
-        if (e.detail.blocked) return;
         var bug = knownbugs.get(e.detail.id);
-        this.blocked_bugs.splice(this.blocked_bugs.indexOf(bug), 1);
-        this.unblocked_bugs.push(bug);
-        this.unblocked_bugs.sort(sortBugs);
+        var oldpos = this.buglist.indexOf(bug);
+        this.buglist.sort(sortBugs);
+        var newpos = this.buglist.indexOf(bug);
+        if (newpos === oldpos) {
+            return;
+        }
+        var bugnode = document.getElementById('person_bug_' + bug.id);
+        var sibling = bugnode.parentElement.children[newpos];
+        bugnode.parentElement.insertBefore(bugnode, sibling);
     }
 }
 
