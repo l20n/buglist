@@ -13,7 +13,7 @@ function getBugAPI() {
 
 function findGeckoL20n() {
     var url = getBugAPI();
-    url.searchParams.append('alias', 'gecko-l20n');
+    url.searchParams.append('status_whiteboard', '[gecko-l20n]');
     fetch(url).then(function (response) {
         return response.json();
     }).then(saveBugs);
