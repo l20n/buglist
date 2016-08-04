@@ -281,7 +281,7 @@ class Graph {
                 arcs.push(bug.id + '->' + id + ';');
             });
             nodes.push(bug.id + ' [ tooltip = "' + bug.summary.replace(/"/g, '\\"') + '" ' +
-            ((bug.tags.indexOf('gecko-l20n') >=0 && bug.tags.indexOf('feature') >=0 ) ? 'color = "blue" ' : '') +
+            ((bug.tags.indexOf('gecko-l20n') >=0 && bug.tags.indexOf('feature') >=0 ) ? 'color = "blue"  shape = "box"' : '') +
             'URL = "https://bugzil.la/' + bug.id + '"] ;');
         });
         try {
