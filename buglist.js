@@ -1,6 +1,6 @@
 /* global URL, fetch, CustomEvent */
 
-var newbugs = new Set(), knownbugs = new Map(), tracker;
+var newbugs = new Set(), knownbugs = new Map(), tracker, graph;
 
 const bugapi = 'https://bugzilla.mozilla.org/rest/bug';
 const fields = 'id,alias,product,component,summary,status,resolution,assigned_to,depends_on,blocks,cf_user_story';
@@ -64,6 +64,7 @@ function saveBugs(data) {
 
 function done() {
     document.getElementById('loading').textContent = '';
+    graph = new Graph();
 }
 
 function queryMoreBugs() {

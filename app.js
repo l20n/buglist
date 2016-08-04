@@ -1,4 +1,4 @@
-/* global knownbugs, tracker */
+/* global $, knownbugs, tracker, Viz */
 "use strict";
 
 document.addEventListener('bug-data', ondata, true);
@@ -268,6 +268,27 @@ class Person {
         var bugnode = document.getElementById('person_bug_' + bug.id);
         var sibling = bugnode.parentElement.children[newpos];
         bugnode.parentElement.insertBefore(bugnode, sibling);
+    }
+}
+
+class Graph {
+    constructor() {
+        var arcs = [], nodes = [];
+        this.nodes = nodes;
+        knownbugs.forEach(function(bug) {
+            if (bug.resolution === 'FIXED') return;
+            bug.blocks.forEach(function(id) {
+                arcs.push(bug.id + '->' + id + ';');
+            });
+            nodes.push(bug.id + ' [ tooltip = "' + bug.summary.replace(/"/g, '\\"') + '" ] ;');
+        });
+        try {
+        this.viz = Viz("digraph g { \n  rankdir = LR;\n" +
+            nodes.join("\n") + 
+            arcs.join("\n") +
+        " }");
+        } catch (e) {console.log(e)}
+        this.dom = $("#graph").html(this.viz);
     }
 }
 
