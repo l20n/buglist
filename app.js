@@ -280,10 +280,12 @@ class Graph {
             bug.blocks.forEach(function(id) {
                 arcs.push(bug.id + '->' + id + ';');
             });
-            nodes.push(bug.id + ' [ tooltip = "' + bug.summary.replace(/"/g, '\\"') + '" ] ;');
+            nodes.push(bug.id + ' [ tooltip = "' + bug.summary.replace(/"/g, '\\"') + '" ' +
+            ((bug.tags.indexOf('gecko-l20n') >=0 && bug.tags.indexOf('feature') >=0 ) ? 'color = "blue" ' : '') +
+            'URL = "https://bugzil.la/' + bug.id + '"] ;');
         });
         try {
-        this.viz = Viz("digraph g { \n  rankdir = LR;\n" +
+        this.viz = Viz("digraph \"\" { \n  rankdir = LR;\n" +
             nodes.join("\n") + 
             arcs.join("\n") +
         " }");

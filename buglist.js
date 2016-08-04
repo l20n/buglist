@@ -3,7 +3,7 @@
 var newbugs = new Set(), knownbugs = new Map(), tracker, graph;
 
 const bugapi = 'https://bugzilla.mozilla.org/rest/bug';
-const fields = 'id,alias,product,component,summary,status,resolution,assigned_to,depends_on,blocks,cf_user_story';
+const fields = 'id,alias,product,component,summary,status,resolution,assigned_to,depends_on,blocks,cf_user_story,whiteboard';
 
 function getBugAPI() {
     var url = new URL(bugapi);
@@ -34,6 +34,13 @@ function saveBugs(data) {
             tracker = bug.id;
         }
         bug.resolved_deps = [];
+        bug.tags = [];
+        var tags = bug.whiteboard.split(/\[([^\]]*)\]/g);
+        tags.shift();
+        while (tags.length) {
+            bug.tags.push(tags.shift());
+            tags.shift();
+        }
         newbugs.add(bug.id);
         if (bug.status === 'RESOLVED') {
             // if this bug is resolved, strip it from the dependencies of other bugs
