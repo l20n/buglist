@@ -280,7 +280,7 @@ class Graph {
             bug.blocks.forEach(function(id) {
                 arcs.push(bug.id + '->' + id + ';');
             });
-            nodes.push(bug.id + ' [ tooltip = "' + bug.summary.replace(/"/g, '\\"') + '" ' +
+            nodes.push(bug.id + ' [ tooltip = "' + bug.summary.replace(/"/g, '\\"') + '" style = "filled" fillcolor = "white" ' +
             ((bug.tags.indexOf('gecko-l20n') >=0 && bug.tags.indexOf('feature') >=0 ) ? 'color = "blue"  shape = "box"' : '') +
             'URL = "https://bugzil.la/' + bug.id + '"] ;');
         });
